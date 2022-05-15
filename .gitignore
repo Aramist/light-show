@@ -69,5 +69,7 @@ manifest.mf
 nbbuild.xml
 nbproject
 
-build/*
+*/build/*
+*/.vscode
+
 
