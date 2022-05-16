@@ -58,11 +58,11 @@ void loop()
         red.popBullet();
 
     // If the front ships collide, kill both
-    if (red.hitTest(blue.fleet->peek()->getLocation())) {
+    if (red.hitTest(blue.fleet->peek()->getLocation()))
+    {
         red.fleet->peek()->kill();
         blue.fleet->peek()->kill();
     }
-
 
     red.updateState();
     blue.updateState();
@@ -80,12 +80,70 @@ void loop()
     }
     */
 
+    
     FastLED.show();
     delay(30);
+
+
+    uint8_t winner = determineWinner();
+    if (winner != 2){
+        winSequence(winner);
+    }
 }
 
 inline void clearFrame()
 {
+    fillFrame(CRGB::Black);
+}
+
+inline void fillFrame(CRGB color) {
     for (int i = 0; i < NUM_LEDS; i++)
-        leds[i] = CRGB::Black;
+        leds[i] = color;
+}
+
+uint8_t determineWinner() {
+    if (red.fleet->size == 4 && blue.fleet->isEmpty())
+        return 1;
+    else if (blue.fleet->size == 4 && red.fleet->isEmpty())
+        return 0;
+    return 2;
+}
+
+void winSequence(uint8_t winner)
+{
+    CHSV fillColor = winner ? CHSV(HUE_RED, 255, 100) : CHSV(HUE_BLUE, 255, 100);
+    CHSV dimFill = fillColor; dimFill.v = 80;
+    CRGB dimRGB;
+    hsv2rgb_rainbow(dimFill, dimRGB);
+    for (int i = 0; i < NUM_LEDS; i++)
+    {
+        // If red wins, start the thing from red's side
+        hsv2rgb_rainbow(fillColor, leds[winner ? NUM_LEDS-i-1 : i]);
+        FastLED.show();
+        delay(15);
+    }
+    delay(200);
+    fillFrame(dimRGB);
+    FastLED.show();
+    delay(200);
+    fillFrame(fillColor);
+    FastLED.show();
+    delay(200);
+    fillFrame(dimRGB);
+    FastLED.show();
+
+    clearTeams();
+    delay(500);
+}
+
+void clearTeams()
+{
+    while (!red.fleet->isEmpty())
+        red.fleet->pop();
+    while (!red.bullets->isEmpty())
+        red.popBullet();
+    while (!blue.fleet->isEmpty())
+        blue.fleet->pop();
+    while (!blue.bullets->isEmpty())
+        blue.popBullet();
 }
